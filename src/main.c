@@ -1,6 +1,6 @@
 #include "../include//io.h"
 #include "../include/math.h"
-
+#include "../include/utils.h"
 
 int main() {
 
@@ -24,7 +24,13 @@ int main() {
 //    }
 //    write(new_vectors, path, new_vector_len);
 
-    write(basis, path, rank);
+    //write(basis, path, rank);
+    uint32_t* spectrum = process(basis,rank,new_vector_len,new_vector_len+1,vector_num,1);
+
+    write(spectrum, path, vector_len+1);
+
+
+    free(spectrum);
     free(basis);
     free(vectors);
     free(new_vectors);

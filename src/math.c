@@ -1,42 +1,18 @@
 #include <string.h>
+#include <stdio.h>
+#include <bits/mathcalls.h>
 #include "../include/math.h"
 
-int comp(const uint32_t * a, const uint32_t * b)
-{
-    return *b - *a;
-}
-int compare (const void* a, const void* b)
-{
-    return comp((uint32_t *)a,(uint32_t *)b);
-}
-
-
-void strreverse(char* begin, char* end) {
-
-    char aux;
-
-    while(end>begin)
-
-        aux=*end, *end--=*begin, *begin++=aux;
-
-}
 
 void itoa(uint32_t value, char* str, uint32_t base, uint32_t len) {
-
     static char num[] = "0123456789abcdefghijklmnopqrstuvwxyz";
-
     char* wstr=str;
-
     if (base<2 || base>35){ *wstr='\0'; return; }
-
     for (int i = 0; i < len; ++i,value/=base) {
         *wstr++ = num[value%base];
     }
-
     *wstr='\0';
-
     strreverse(str,wstr-1);
-
 }
 uint32_t gray_encode(uint32_t g)
 {
@@ -107,7 +83,6 @@ uint32_t * delete_zeros(uint32_t * vectors,uint32_t vector_num, uint32_t vector_
 }
 
 uint32_t* get_basis(uint32_t * vectors, uint32_t vector_num, uint32_t vector_len, uint32_t * rank) {
-    // Initial rank equals to the current full rank
     vector_len++;
     *rank = (vector_len < vector_num) ? vector_len : vector_num;
     for (uint32_t i = 0; i < *rank; ++i) {
@@ -130,4 +105,78 @@ uint32_t* get_basis(uint32_t * vectors, uint32_t vector_num, uint32_t vector_len
     return basis;
 }
 
+void find_spectrum(const uint32_t* basis, uint32_t vector_len, const uint32_t* bounds, uint32_t* total_spectrum) {
+    uint32_t* spectrum = (uint32_t *) malloc((vector_len+1)*sizeof (uint32_t));
+    uint32_t current_vector = 0;
 
+    // Calculate the first vector in the given range and its weight
+    if (bounds[0] != 0) {
+        uint32_t i = 0;
+        uint32_t gray = gray_encode(bounds[0]);
+        while (gray) {
+            if (gray % 2 == 1) {
+                current_vector ^= basis[i];
+            }
+            i++;
+            gray /= 2;
+        }
+    }
+    spectrum[weight(current_vector)]++;
+
+    // Calculate weights of other vectors
+    for (uint32_t i = bounds[0]; i < bounds[1]; i++) {
+        uint32_t bit_change_pos = (uint32_t)round(log2((-1-i) & (1+i)));
+        current_vector ^= basis[bit_change_pos];
+        uint32_t w = weight(current_vector);
+        spectrum[w]++;
+    }
+
+    // Append weights from each process to the main list
+    for (uint32_t i = 0; i < vector_len+1; i++) {
+        *(total_spectrum + bounds[0] +i) = spectrum[i];
+    }
+}
+
+uint32_t * process(uint32_t * basis, uint32_t rank, uint32_t new_vector_len,
+                   uint32_t vector_len, uint32_t vector_num, uint32_t threads) {
+    uint32_t *spectrum = (uint32_t *) malloc(vector_len * sizeof(uint32_t));
+    memset(spectrum, 0, vector_len);
+    if (rank == new_vector_len) {
+        spectrum[0] = 1;
+        for (uint32_t i = 1; i < rank + 1; i++) {
+            spectrum[i] = (int) (spectrum[i - 1] * (rank - i + 1) / i);
+        }
+    } else {
+        if (threads > 1) {
+            printf("Using %d cores for parallel computing.\n", threads);
+        } else {
+            printf("Using 1 core for parallel computing.\n");
+        }
+
+//        uint32_t ** parts = blocks_partition(0,(1<<rank) -1,threads);
+//#pragma omp parallel for num_threads(threads)
+//        for (uint32_t i = 0; i < threads; i++) {
+//            uint32_t start = parts[i];
+//            end = (i == cores-1) ? part_size : parts[i+1];
+//            for (j = start; j < end; j++) {
+//                weight = 0;
+//                for (k = 0; k < vector_len; k++) {
+//                    if ((j >> k) & 1) {
+//                        weight += basis[k];
+//                    }
+//                }
+//                total_spectrum[weight] += 1;
+//            }
+//        }
+//        free(parts);
+//        for (i = 0; i < vector_len; i++) {
+//            spectrum[i] = total_spectrum[i];
+//        }
+//    }
+//    free(total_spectrum);
+        for (uint32_t i = 0; i < vector_len; i++) {
+            spectrum[i] = (int) (spectrum[i] * 1 << (vector_num - rank));
+        }
+    }
+    return spectrum;
+}
