@@ -1,22 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <inttypes.h>
+#include "../include/io.h"
 
-
-uint32_t gray_encode(uint32_t g)
-{
-    return g ^ (g >> 1);
-}
-
-uint32_t gray_decode(uint32_t gray)
-{
-    uint32_t bin;
-    for (bin = 0; gray; gray >>= 1) {
-        bin ^= gray;
-    }
-    return bin;
-}
 
 int32_t * read(const char* path, uint32_t * vector_num, uint32_t * vector_len) {
     FILE* fin = fopen(path, "r");
@@ -61,21 +44,4 @@ void write(int32_t * output, char *path, size_t size) {
     }
     fprintf(fout, "%"  PRIu64  "\t%"PRId32, size - 1, output[size - 1]);
     fclose(fout);
-}
-
-int main() {
-
-    uint32_t vector_num, vector_len;
-    int32_t * vectors = read("/home/hyperb0rean/CLionProjects/syntacore_trial/input.txt", &vector_num, &vector_len);
-
-    printf("Number of vectors: %d\n", vector_num);
-    printf("Length of vectors: %d\n", vector_len);
-
-    char* path = "spectrum.txt";
-
-    write(vectors, path, vector_num);
-
-    free(vectors);
-
-    return 0;
 }
