@@ -8,6 +8,15 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
+static inline uint32_t log2(const uint32_t x) {
+    uint32_t y;
+    asm ( "\tbsr %1, %0\n"
+            : "=r"(y)
+            : "r" (x)
+            );
+    return y;
+}
+
 static void strreverse(char* begin, char* end) {
     char aux;
     while(end>begin) aux=*end, *end--=*begin, *begin++=aux;

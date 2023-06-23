@@ -124,8 +124,8 @@ void find_spectrum(const uint32_t* basis, uint32_t vector_len, const uint32_t* b
 
     // Calculate weights of other vectors
     for (uint32_t i = bounds[0]; i < bounds[1]; i++) {
-        //uint32_t bit_change_pos = (uint32_t)round(log2((-1-i) & (1+i)));
-        //current_vector ^= basis[bit_change_pos];
+        uint32_t bit_change_pos = log2((-1-i) & (1+i));
+        current_vector ^= basis[bit_change_pos];
         uint32_t w = weight(current_vector);
         spectrum[w]++;
     }
@@ -148,9 +148,9 @@ uint32_t * process(uint32_t * basis, uint32_t rank, uint32_t new_vector_len,
         }
     } else {
         if (threads > 1) {
-            printf("Using %d cores for parallel computing.\n", threads);
+            printf("Using %d process for parallel computing.\n", threads);
         } else {
-            printf("Using 1 core for parallel computing.\n");
+            printf("Using 1 process for parallel computing.\n");
         }
 
 //        uint32_t ** parts = blocks_partition(0,(1<<rank) -1,threads);
@@ -174,9 +174,10 @@ uint32_t * process(uint32_t * basis, uint32_t rank, uint32_t new_vector_len,
 //        }
 //    }
 //    free(total_spectrum);
-        for (uint32_t i = 0; i < vector_len; i++) {
-            spectrum[i] = (int) (spectrum[i] * 1 << (vector_num - rank));
-        }
+
+    }
+    for (uint32_t i = 0; i < vector_len+2; i++) {
+        spectrum[i] = (int) (spectrum[i] * 1 << (vector_num - rank));
     }
     return spectrum;
 }
