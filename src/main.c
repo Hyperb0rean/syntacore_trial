@@ -25,9 +25,9 @@ int main() {
 //    write(new_vectors, path, new_vector_len);
 
     //write(basis, path, rank);
-    uint32_t* spectrum = process(basis,rank,new_vector_len,new_vector_len+1,vector_num,1);
+    uint32_t* spectrum = process(basis,rank,new_vector_len,vector_len,vector_num,1);
 
-    write(spectrum, path, vector_len+1);
+    write(spectrum, path, vector_len+2);
 
 
     free(spectrum);

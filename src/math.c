@@ -1,6 +1,5 @@
 #include <string.h>
 #include <stdio.h>
-#include <bits/mathcalls.h>
 #include "../include/math.h"
 
 
@@ -125,8 +124,8 @@ void find_spectrum(const uint32_t* basis, uint32_t vector_len, const uint32_t* b
 
     // Calculate weights of other vectors
     for (uint32_t i = bounds[0]; i < bounds[1]; i++) {
-        uint32_t bit_change_pos = (uint32_t)round(log2((-1-i) & (1+i)));
-        current_vector ^= basis[bit_change_pos];
+        //uint32_t bit_change_pos = (uint32_t)round(log2((-1-i) & (1+i)));
+        //current_vector ^= basis[bit_change_pos];
         uint32_t w = weight(current_vector);
         spectrum[w]++;
     }
@@ -139,11 +138,12 @@ void find_spectrum(const uint32_t* basis, uint32_t vector_len, const uint32_t* b
 
 uint32_t * process(uint32_t * basis, uint32_t rank, uint32_t new_vector_len,
                    uint32_t vector_len, uint32_t vector_num, uint32_t threads) {
-    uint32_t *spectrum = (uint32_t *) malloc(vector_len * sizeof(uint32_t));
-    memset(spectrum, 0, vector_len);
+
+    uint32_t *spectrum = (uint32_t *) malloc((vector_len+2) * sizeof(uint32_t));
+    memset(spectrum, 0, vector_len+2);
     if (rank == new_vector_len) {
         spectrum[0] = 1;
-        for (uint32_t i = 1; i < rank + 1; i++) {
+        for (uint32_t i = 1; i <= rank + 1; i++) {
             spectrum[i] = (int) (spectrum[i - 1] * (rank - i + 1) / i);
         }
     } else {
