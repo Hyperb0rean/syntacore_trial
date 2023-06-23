@@ -12,6 +12,10 @@ int main() {
 
     char* path = "spectrum.txt";
 
+    for (int i = 0; i < vector_num; ++i) {
+        vectors[i] = weight(vectors[i]);
+    }
+
     write(vectors, path, vector_num);
 
     free(vectors);
