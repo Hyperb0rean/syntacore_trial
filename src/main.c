@@ -5,7 +5,7 @@
 int main() {
 
     uint32_t vector_num, vector_len;
-    int32_t * vectors = read("/home/hyperb0rean/CLionProjects/syntacore_trial/input.txt", &vector_num, &vector_len);
+    uint32_t * vectors = read("/home/hyperb0rean/CLionProjects/syntacore_trial/input.txt", &vector_num, &vector_len);
 
     printf("Number of vectors: %d\n", vector_num);
     printf("Length of vectors: %d\n", vector_len);

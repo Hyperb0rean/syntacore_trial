@@ -6,7 +6,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-void write(int32_t * output, char *path, size_t size);
-int32_t * read(const char* path, uint32_t * vector_num, uint32_t * vector_len);
+void write(uint32_t * output, char *path, size_t size);
+uint32_t * read(const char* path, uint32_t * vector_num, uint32_t * vector_len);
 
 #endif //SYNTACORE_TRIAL_IO_H
