@@ -12,13 +12,17 @@ int main() {
 
     char* path = "spectrum.txt";
 
-    for (int i = 0; i < vector_num; ++i) {
-        vectors[i] = weight(vectors[i]);
-    }
 
-    write(vectors, path, vector_num);
+    uint32_t new_vector_len;
+    uint32_t * new_vectors = delete_zeros(vectors,vector_num,vector_len,&new_vector_len);
+
+
+//    for (int i = 0; i < vector_num; ++i) {
+//        vectors[i] = weight(vectors[i]);
+//    }
+    write(new_vectors, path, vector_num);
 
     free(vectors);
-
+    free(new_vectors);
     return 0;
 }
