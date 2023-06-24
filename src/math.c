@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdio.h>
+#include <pthread.h>
 #include "../include/math.h"
 
 
@@ -104,6 +105,8 @@ uint32_t* get_basis(uint32_t * vectors, uint32_t vector_num, uint32_t vector_len
     return basis;
 }
 
+
+
 void find_spectrum(const uint32_t* basis, uint32_t vector_len, const uint32_t* bounds, uint32_t* total_spectrum) {
     uint32_t* spectrum = (uint32_t *) malloc((vector_len+2)*sizeof (uint32_t));
     uint32_t current_vector = 0;
@@ -137,8 +140,21 @@ void find_spectrum(const uint32_t* basis, uint32_t vector_len, const uint32_t* b
     }
 }
 
+typedef struct {
+    uint32_t* basis;
+    uint32_t vector_len;
+    uint32_t* bounds;
+    uint32_t* total_spectrum;
+} find_spectrum_args;
+
+void *find_spectrum_multithreading (void *args) {
+    find_spectrum_args *actual_args = args;
+    find_spectrum(actual_args->basis,actual_args->vector_len,actual_args->bounds,actual_args->total_spectrum);
+    free(actual_args);
+}
+
 uint32_t * process(uint32_t * basis, uint32_t rank, uint32_t new_vector_len,
-                   uint32_t vector_len, uint32_t vector_num, uint32_t threads) {
+                   uint32_t vector_len, uint32_t vector_num, uint32_t num_threads) {
 
     uint32_t *spectrum = (uint32_t *) malloc((vector_len+2) * sizeof(uint32_t));
     memset(spectrum, 0, (vector_len+2)*sizeof (uint32_t));
@@ -148,16 +164,32 @@ uint32_t * process(uint32_t * basis, uint32_t rank, uint32_t new_vector_len,
             spectrum[i] = (int) (spectrum[i - 1] * (rank - i + 1) / i);
         }
     } else {
-        if (threads > 1) {
-            printf("Using %d process for parallel computing.\n", threads);
-        } else {
+        uint32_t ** parts = blocks_partition(0,(1<<rank) -1,num_threads);
+        if (num_threads == 1) {
             printf("Using 1 process for parallel computing.\n");
+            find_spectrum(basis,vector_len,parts[0],spectrum);
+        } else {
+            printf("Using %"PRIu32" process for parallel computing.\n", num_threads);
+
+            pthread_t threads[num_threads];
+            for (int i = 0; i < num_threads; ++i) {
+                find_spectrum_args *args = malloc(sizeof *args);
+                args->basis = basis;
+                args->vector_len = vector_len;
+                args->bounds = parts[i];
+                args->total_spectrum = spectrum;
+                if (pthread_create(&threads[i], NULL, find_spectrum_multithreading, args)) {
+                    free(args);
+                    //goto error_handler;
+                }
+            }
+            for (int i = 0; i < num_threads; ++i) {
+                pthread_join(threads[i], NULL);
+            }
+
         }
-
-        uint32_t ** parts = blocks_partition(0,(1<<rank) -1,threads);
-        find_spectrum(basis,vector_len,parts[0],spectrum);
-
     }
+
     for (uint32_t i = 0; i < vector_len+2; i++) {
         spectrum[i] = (int) (spectrum[i] * 1 << (vector_num - rank));
     }
