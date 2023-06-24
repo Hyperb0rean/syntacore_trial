@@ -105,8 +105,9 @@ uint32_t* get_basis(uint32_t * vectors, uint32_t vector_num, uint32_t vector_len
 }
 
 void find_spectrum(const uint32_t* basis, uint32_t vector_len, const uint32_t* bounds, uint32_t* total_spectrum) {
-    uint32_t* spectrum = (uint32_t *) malloc((vector_len+1)*sizeof (uint32_t));
+    uint32_t* spectrum = (uint32_t *) malloc((vector_len+2)*sizeof (uint32_t));
     uint32_t current_vector = 0;
+    memset(spectrum, 0, (vector_len+2)*sizeof (uint32_t));
 
     // Calculate the first vector in the given range and its weight
     if (bounds[0] != 0) {
@@ -131,8 +132,8 @@ void find_spectrum(const uint32_t* basis, uint32_t vector_len, const uint32_t* b
     }
 
     // Append weights from each process to the main list
-    for (uint32_t i = 0; i < vector_len+1; i++) {
-        *(total_spectrum + bounds[0] +i) = spectrum[i];
+    for (uint32_t i = 0; i < vector_len+2; i++) {
+        total_spectrum[i] += spectrum[i];
     }
 }
 
@@ -140,7 +141,7 @@ uint32_t * process(uint32_t * basis, uint32_t rank, uint32_t new_vector_len,
                    uint32_t vector_len, uint32_t vector_num, uint32_t threads) {
 
     uint32_t *spectrum = (uint32_t *) malloc((vector_len+2) * sizeof(uint32_t));
-    memset(spectrum, 0, vector_len+2);
+    memset(spectrum, 0, (vector_len+2)*sizeof (uint32_t));
     if (rank == new_vector_len) {
         spectrum[0] = 1;
         for (uint32_t i = 1; i <= rank + 1; i++) {
@@ -154,6 +155,7 @@ uint32_t * process(uint32_t * basis, uint32_t rank, uint32_t new_vector_len,
         }
 
         uint32_t ** parts = blocks_partition(0,(1<<rank) -1,threads);
+        find_spectrum(basis,vector_len,parts[0],spectrum);
 
     }
     for (uint32_t i = 0; i < vector_len+2; i++) {
